@@ -128,6 +128,11 @@ final EditText et = new EditText(this);
 ###  1.九宫格解锁
 参考
   笔记本属于个人私密应用，所有我为其添加了九宫格密码，防止个人隐私泄露。
+ 
+ 第一次使用会要求设置初始化密码，进入主界面之后可以重置密码。
+  
+  ![](https://github.com/que123567/NotePad/blob/master/app/src/main/res/drawable/resetpass.png)
+  
  #### 代码细节: 
 
 ### 通过自定义view实现，代码量大概300+，太长仅贴出部分。
