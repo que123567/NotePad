@@ -47,14 +47,15 @@
 
  #### 实现思路：我模仿原项目中Listview的item点击跳转，先查询全部结果，最后从结果中**获取标题对应列**的值与**输入的标题**匹配，返回匹配项的**id**（即数据库的第一列 主键_id），通过```ContentUris.withAppendedId```添加到uri末尾。
 
-#### 数据库结构如下 
+#### 数据库结构如下 ####
 
 | _id    | title  |note |created|modifier|
-| :------------- | :------------- | | |
+| :------------- | :------------- |:-- |:-- |:--|
 | 1              | 笔记1号     | 这个内容是我瞎编的| 1494478104       |1494478104
 |2|笔记2号| 没有啊 |1494478100|1494478104|
 
-  ```
+ 
+```
   @TargetApi(Build.VERSION_CODES.KITKAT)
     private Boolean doSearch(String title) { //查询标题是否存在
         String[] TitleselectionArgs = {title};
