@@ -320,24 +320,24 @@ public class NotesList extends ListActivity {
                 final EditText ets = new EditText(this);
                 new AlertDialog.Builder(NotesList.this).setTitle("输入查询").setView(ets)
                         .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                input_word = ets.getText().toString();
-                                String[] search = {"_id",NotePad.Notes.COLUMN_NAME_TITLE, NotePad.Notes
-                                        .COLUMN_NAME_CREATE_DATE};
-                                String selection = NotePad.Notes.COLUMN_NAME_TITLE + " like?";
-                                String[] selectionArgs = {input_word + "%"};
-                                Cursor cursors = managedQuery(getIntent().getData(), search, selection,
-                                        selectionArgs, NotePad.Notes.DEFAULT_SORT_ORDER);
-                                cursors.moveToFirst();
-                                String[] data = {NotePad.Notes.COLUMN_NAME_TITLE, NotePad.Notes
-                                        .COLUMN_NAME_CREATE_DATE};
-                                final int[] viewID = {android.R.id.text1, R.id.tv_time_stamp};
-                                SimpleCursorAdapter adapters = new SimpleCursorAdapter(NotesList
-                                        .this, R.layout.noteslist_item, cursors, data, viewID);
-                                setListAdapter(adapters);
-                            }
-                        }).show();
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        input_word = ets.getText().toString();
+                        String[] search = {"_id", NotePad.Notes.COLUMN_NAME_TITLE, NotePad.Notes
+                                .COLUMN_NAME_CREATE_DATE};
+                        String selection = NotePad.Notes.COLUMN_NAME_TITLE + " like ?";
+                        String[] selectionArgs = {input_word + "%"};
+                        Cursor cursors = managedQuery(getIntent().getData(), search, selection,
+                                selectionArgs, NotePad.Notes.DEFAULT_SORT_ORDER);
+                        cursors.moveToFirst();
+                        String[] data = {NotePad.Notes.COLUMN_NAME_TITLE, NotePad.Notes
+                                .COLUMN_NAME_CREATE_DATE};
+                        final int[] viewID = {android.R.id.text1, R.id.tv_time_stamp};
+                        SimpleCursorAdapter adapters = new SimpleCursorAdapter(NotesList
+                                .this, R.layout.noteslist_item, cursors, data, viewID);
+                        setListAdapter(adapters);
+                    }
+                }).show();
 
                 return true;
 
@@ -346,9 +346,9 @@ public class NotesList extends ListActivity {
                 LoginActivity.mEditor = getSharedPreferences("keys", MODE_PRIVATE).edit();
                 LoginActivity.mEditor.clear();
                 LoginActivity.mEditor.apply();
-                Toast.makeText(MyApplication.getContext(), "锁屏密码清空,重进锁屏界面设置密码", Toast.LENGTH_LONG).show() ;
+                Toast.makeText(MyApplication.getContext(), "锁屏密码清空,重进锁屏界面设置密码", Toast
+                        .LENGTH_LONG).show();
                 return true;
-
             default:
                 return super.onOptionsItemSelected(item);
         }
