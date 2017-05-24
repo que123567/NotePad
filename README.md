@@ -85,6 +85,8 @@
 
 ![](https://github.com/que123567/NotePad/blob/master/app/src/main/res/drawable/search_vague_input.png)
 
+##### 出现以y开头的搜索结果 
+
 ![](https://github.com/que123567/NotePad/blob/master/app/src/main/res/drawable/search_vague_result.png)
 
 #### 实现思路
