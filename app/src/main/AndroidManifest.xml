@@ -44,7 +44,8 @@
         <activity
             android:name=".NotesList"
             android:label="@string/title_notes_list"
-            android:theme="@android:style/Theme.Holo.Light">
+            android:theme="@android:style/Theme.Holo.Light"
+            >
             <!--<intent-filter>-->
             <!--<action android:name="android.intent.action.MAIN"/>-->
 

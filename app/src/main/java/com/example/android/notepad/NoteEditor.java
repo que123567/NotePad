@@ -26,18 +26,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.database.Cursor;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.EditText;
 import android.widget.Toast;
+
+import com.example.android.notepad.memento.NoteCaretaker;
+import com.example.android.notepad.memento.NoteEditText;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -47,7 +45,7 @@ import java.util.Date;
  * {@link Intent#ACTION_VIEW} (request to view data), edit a note
  * {@link Intent#ACTION_EDIT}, create a note {@link Intent#ACTION_INSERT}, or
  * create a new note from the current contents of the clipboard {@link Intent#ACTION_PASTE}.
- *
+ * <p>
  * NOTE: Notice that the provider operations in this Activity are taking place on the UI thread.
  * This is not a good practice. It is only done here to make the code more readable. A real
  * application should use the {@link android.content.AsyncQueryHandler}
@@ -56,16 +54,13 @@ import java.util.Date;
 public class NoteEditor extends Activity {
     // For logging and debugging purposes
     private static final String TAG = "NoteEditor";
+    NoteCaretaker mNoteCaretaker = new NoteCaretaker();
 
     /*
      * Creates a projection that returns the note ID and the note contents.
      */
-    private static final String[] PROJECTION =
-        new String[] {
-            NotePad.Notes._ID,
-            NotePad.Notes.COLUMN_NAME_TITLE,
-            NotePad.Notes.COLUMN_NAME_NOTE
-    };
+    private static final String[] PROJECTION = new String[]{NotePad.Notes._ID, NotePad.Notes
+            .COLUMN_NAME_TITLE, NotePad.Notes.COLUMN_NAME_NOTE};
 
     // A label for the saved state of the activity
     private static final String ORIGINAL_CONTENT = "origContent";
@@ -79,61 +74,9 @@ public class NoteEditor extends Activity {
     private int mState;
     private Uri mUri;
     private Cursor mCursor;
-    private EditText mText;
+    private NoteEditText mText;
     private String mOriginalContent;
 
-    /**
-     * Defines a custom EditText View that draws lines between each line of text that is displayed.
-     */
-    public static class LinedEditText extends android.support.v7.widget.AppCompatEditText {
-        private Rect mRect;
-        private Paint mPaint;
-
-        // This constructor is used by LayoutInflater
-        public LinedEditText(Context context, AttributeSet attrs) {
-            super(context, attrs);
-
-            // Creates a Rect and a Paint object, and sets the style and color of the Paint object.
-            mRect = new Rect();
-            mPaint = new Paint();
-            mPaint.setStyle(Paint.Style.STROKE);
-            mPaint.setColor(0x800000FF);
-        }
-
-        /**
-         * This is called to draw the LinedEditText object
-         * @param canvas The canvas on which the background is drawn.
-         */
-        @Override
-        protected void onDraw(Canvas canvas) {
-
-            // Gets the number of lines of text in the View.
-            int count = getLineCount();
-
-            // Gets the global Rect and Paint objects
-            Rect r = mRect;
-            Paint paint = mPaint;
-
-            /*
-             * Draws one line in the rectangle for every line of text in the EditText
-             */
-            for (int i = 0; i < count; i++) {
-
-                // Gets the baseline coordinates for the current line of text
-                int baseline = getLineBounds(i, r);
-
-                /*
-                 * Draws a line in the background from the left of the rectangle to the right,
-                 * at a vertical position one dip below the baseline, using the "paint" object
-                 * for details.
-                 */
-                canvas.drawLine(r.left, baseline + 1, r.right, baseline + 1, paint);
-            }
-
-            // Finishes up by calling the parent method
-            super.onDraw(canvas);
-        }
-    }
 
     /**
      * This method is called by Android when the Activity is first started. From the incoming
@@ -164,8 +107,7 @@ public class NoteEditor extends Activity {
             mUri = intent.getData();
 
             // For an insert or paste action:
-        } else if (Intent.ACTION_INSERT.equals(action)
-                || Intent.ACTION_PASTE.equals(action)) {
+        } else if (Intent.ACTION_INSERT.equals(action) || Intent.ACTION_PASTE.equals(action)) {
 
             // Sets the Activity state to INSERT, gets the general note URI, and inserts an
             // empty record in the provider
@@ -191,7 +133,7 @@ public class NoteEditor extends Activity {
             // set the result to be returned.
             setResult(RESULT_OK, (new Intent()).setAction(mUri.toString()));
 
-        // If the action was other than EDIT or INSERT:
+            // If the action was other than EDIT or INSERT:
         } else {
 
             // Logs an error that the action was not understood, finishes the Activity, and
@@ -209,12 +151,12 @@ public class NoteEditor extends Activity {
          * the block will be momentary, but in a real app you should use
          * android.content.AsyncQueryHandler or android.os.AsyncTask.
          */
-        mCursor = managedQuery(
-            mUri,         // The URI that gets multiple notes from the provider.
-            PROJECTION,   // A projection that returns the note ID and note content for each note.
-            null,         // No "where" clause selection criteria.
-            null,         // No "where" clause selection values.
-            null          // Use the default sort order (modification date, descending)
+        mCursor = managedQuery(mUri,         // The URI that gets multiple notes from the provider.
+                PROJECTION,   // A projection that returns the note ID and note content for each
+                // note.
+                null,         // No "where" clause selection criteria.
+                null,         // No "where" clause selection values.
+                null          // Use the default sort order (modification date, descending)
         );
 
         // For a paste, initializes the data from clipboard.
@@ -230,7 +172,9 @@ public class NoteEditor extends Activity {
         setContentView(R.layout.note_editor);
 
         // Gets a handle to the EditText in the the layout.
-        mText = (EditText) findViewById(R.id.note);
+        mText = (NoteEditText) findViewById(R.id.note);
+
+
 
         /*
          * If this Activity had stopped previously, its state was written the ORIGINAL_CONTENT
@@ -244,7 +188,7 @@ public class NoteEditor extends Activity {
     /**
      * This method is called when the Activity is about to come to the foreground. This happens
      * when the Activity comes to the top of the task stack, OR when it is first starting.
-     *
+     * <p>
      * Moves to the first note in the list, sets an appropriate title for the action chosen by
      * the user, puts the note contents into the TextView, and saves the original text as a
      * backup.
@@ -276,7 +220,7 @@ public class NoteEditor extends Activity {
                 Resources res = getResources();
                 String text = String.format(res.getString(R.string.title_edit), title);
                 setTitle(text);
-            // Sets the title to "create" for inserts
+                // Sets the title to "create" for inserts
             } else if (mState == STATE_INSERT) {
                 setTitle(getText(R.string.title_create));
             }
@@ -313,7 +257,7 @@ public class NoteEditor extends Activity {
      * This method is called when an Activity loses focus during its normal operation, and is then
      * later on killed. The Activity has a chance to save its state so that the system can restore
      * it.
-     *
+     * <p>
      * Notice that this method isn't a normal part of the Activity lifecycle. It won't be called
      * if the user simply navigates away from the Activity.
      */
@@ -326,13 +270,13 @@ public class NoteEditor extends Activity {
 
     /**
      * This method is called when the Activity loses focus.
-     *
+     * <p>
      * For Activity objects that edit information, onPause() may be the one place where changes are
      * saved. The Android application model is predicated on the idea that "save" and "exit" aren't
      * required actions. When users navigate away from an Activity, they shouldn't have to go back
      * to it to complete their work. The act of going away should save everything and leave the
      * Activity in a state where Android can destroy it if necessary.
-     *
+     * <p>
      * If the user hasn't done anything, then this deletes or clears out the note, otherwise it
      * writes the user's work to the provider.
      */
@@ -363,7 +307,8 @@ public class NoteEditor extends Activity {
                 deleteNote();
 
                 /*
-                 * Writes the edits to the provider. The note has been edited if an existing note was
+                 * Writes the edits to the provider. The note has been edited if an existing note
+                  * was
                  * retrieved into the editor *or* if a new note was inserted. In the latter case,
                  * onCreate() inserted a new empty note into the provider, and it is this new note
                  * that is being edited.
@@ -374,14 +319,14 @@ public class NoteEditor extends Activity {
             } else if (mState == STATE_INSERT) {
                 updateNote(text, text);
                 mState = STATE_EDIT;
-          }
+            }
         }
     }
 
     /**
      * This method is called when the user clicks the device's Menu button the first time for
      * this Activity. Android passes in a Menu object that is populated with items.
-     *
+     * <p>
      * Builds the menus for editing and inserting, and adds in alternative actions that
      * registered themselves to handle the MIME types for this application.
      *
@@ -403,8 +348,8 @@ public class NoteEditor extends Activity {
             // for each one that is found.
             Intent intent = new Intent(null, mUri);
             intent.addCategory(Intent.CATEGORY_ALTERNATIVE);
-            menu.addIntentOptions(Menu.CATEGORY_ALTERNATIVE, 0, 0,
-                    new ComponentName(this, NoteEditor.class), null, intent, 0, null);
+            menu.addIntentOptions(Menu.CATEGORY_ALTERNATIVE, 0, 0, new ComponentName(this,
+                    NoteEditor.class), null, intent, 0, null);
         }
 
         return super.onCreateOptionsMenu(menu);
@@ -437,31 +382,39 @@ public class NoteEditor extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle all of the possible menu actions.
         switch (item.getItemId()) {
-        case R.id.menu_save:
-            String text = mText.getText().toString();
-            updateNote(text, null);
-            finish();
-            break;
-        case R.id.menu_delete:
-            deleteNote();
-            finish();
-            break;
-        case R.id.menu_revert:
-            cancelNote();
-            break;
+            case R.id.menu_save:
+                String text = mText.getText().toString();
+                updateNote(text, null);
+                finish();
+                break;
+            case R.id.menu_delete:
+                deleteNote();
+                finish();
+                break;
+            case R.id.menu_revert:
+                cancelNote();
+                break;
+            case R.id.menu_save_before_revert:
+                Toast.makeText(this, "保存记录", Toast.LENGTH_SHORT).show();
+                mNoteCaretaker.saveMemento(mText.mementoFactory());
+                break;
+            case R.id.menu_revert_by_setp:
+                mText.restore(mNoteCaretaker.getPrevMemento());
+                Toast.makeText(this, "撤销", Toast.LENGTH_SHORT).show();
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
 
-//BEGIN_INCLUDE(paste)
+    //BEGIN_INCLUDE(paste)
+
     /**
      * A helper method that replaces the note's data with the contents of the clipboard.
      */
     private final void performPaste() {
 
         // Gets a handle to the Clipboard Manager
-        ClipboardManager clipboard = (ClipboardManager)
-                getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
 
         // Gets a content resolver instance
         ContentResolver cr = getContentResolver();
@@ -470,8 +423,8 @@ public class NoteEditor extends Activity {
         ClipData clip = clipboard.getPrimaryClip();
         if (clip != null) {
 
-            String text=null;
-            String title=null;
+            String text = null;
+            String title = null;
 
             // Gets the first item from the clipboard data
             ClipData.Item item = clip.getItemAt(0);
@@ -485,8 +438,7 @@ public class NoteEditor extends Activity {
             if (uri != null && NotePad.Notes.CONTENT_ITEM_TYPE.equals(cr.getType(uri))) {
 
                 // The clipboard holds a reference to data with a note MIME type. This copies it.
-                Cursor orig = cr.query(
-                        uri,            // URI for the content provider
+                Cursor orig = cr.query(uri,            // URI for the content provider
                         PROJECTION,     // Get the columns referred to in the projection
                         null,           // No selection variables
                         null,           // No selection variables, so no criteria are needed
@@ -518,19 +470,21 @@ public class NoteEditor extends Activity {
             updateNote(text, title);
         }
     }
-//END_INCLUDE(paste)
+    //END_INCLUDE(paste)
 
     /**
      * Replaces the current note contents with the text and title provided as arguments.
-     * @param text The new note contents to use.
+     *
+     * @param text  The new note contents to use.
      * @param title The new note title to use
      */
     private final void updateNote(String text, String title) {
 
         Toast.makeText(this, "笔记修改", Toast.LENGTH_SHORT).show();
         long now = System.currentTimeMillis();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss aa"); //下午依旧显示AM 但在IDEA中显示正确 BUG
-        String nowTime=sdf.format(new Date(now));
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss aa"); //下午依旧显示AM
+        // 但在IDEA中显示正确 BUG
+        String nowTime = sdf.format(new Date(now));
 
         // Sets up a map to contain values to be updated in the provider.
         ContentValues values = new ContentValues();
@@ -541,14 +495,14 @@ public class NoteEditor extends Activity {
 
             // If no title was provided as an argument, create one from the note text.
             if (title == null) {
-  
+
                 // Get the note's length
                 int length = text.length();
 
                 // Sets the title by getting a substring of the text that is 31 characters long
                 // or the number of characters in the note plus one, whichever is smaller.
                 title = text.substring(0, Math.min(30, length));
-  
+
                 // If the resulting length is more than 30 characters, chops off any
                 // trailing spaces
                 if (length > 30) {
@@ -579,12 +533,11 @@ public class NoteEditor extends Activity {
          * local database, the block will be momentary, but in a real app you should use
          * android.content.AsyncQueryHandler or android.os.AsyncTask.
          */
-        getContentResolver().update(
-                mUri,    // The URI for the record to update.
+        getContentResolver().update(mUri,    // The URI for the record to update.
                 values,  // The map of column names and new values to apply to them.
                 null,    // No selection criteria are used, so no where columns are necessary.
                 null     // No where columns are used, so no where arguments are necessary.
-            );
+        );
 
 
     }
