@@ -1,5 +1,8 @@
 # NotePad
-## 1.基本功能 
+## 1.基本功能
+##### BUG提示
+##### 由于兼容性问题，该项目在更改主题美化UI后，出现部分版本android系统进入笔记本编辑界面无法弹出键盘的情况，此时无法输入任何内容，遇到该问题，目前发现，在AS自带虚拟机下可以通过笔记本键盘输入内容。genymotion似乎无法支持。
+
 ###  ①.时间戳显示
 ![](https://github.com/que123567/NotePad/blob/master/app/src/main/res/drawable/timestamp.png)
 
@@ -39,7 +42,7 @@
      ContentValues values = new ContentValues();
      values.put(NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE, nowTime);
   ```
-###  ②.按标题查询功能 
+###  ②.按标题查询功能
 ## 提供两种模式
 ### 1.精确搜索：实现了输入准确标题弹出该笔记的功能。
 ![](https://github.com/que123567/NotePad/blob/master/app/src/main/res/drawable/exa_search.png)
@@ -54,7 +57,7 @@
 | 1              | 笔记1号     | 这个内容是我瞎编的| 1494478104       |1494478104
 |2|笔记2号| 没有啊 |1494478100|1494478104|
 
- 
+
 ```
   @TargetApi(Build.VERSION_CODES.KITKAT)
     private Boolean doSearch(String title) { //查询标题是否存在
@@ -84,16 +87,16 @@
 
 ![](https://github.com/que123567/NotePad/blob/master/app/src/main/res/drawable/search_vague_result.png)
 
-#### 实现思路 
+#### 实现思路
 
 该功能附加在NotesList的menu中,通过输入标题，然后以" like ？"语句与通配符"%"查询得到结果.构造并设置一个新的适配器，将查询结果显示在listview中。
 
-#### 注意细节 查询结果必须包含自增长列名"_id" 或者将某列：例如id，映射为_id 代码示例："id as_id"。否则报错 
+#### 注意细节 查询结果必须包含自增长列名"_id" 或者将某列：例如id，映射为_id 代码示例："id as_id"。否则报错
 ```
  java.lang.IllegalArgumentException: column '_id' does not exist
 ```
 
-#### 代码如下 
+#### 代码如下
 
 ```
 final EditText et = new EditText(this);
@@ -128,12 +131,12 @@ final EditText et = new EditText(this);
 ###  1.九宫格解锁
 参考
   笔记本属于个人私密应用，所有我为其添加了九宫格密码，防止个人隐私泄露。
- 
+
  第一次使用会要求设置初始化密码，进入主界面之后可以重置密码。
-  
+
   ![](https://github.com/que123567/NotePad/blob/master/app/src/main/res/drawable/resetpass.png)
-  
- #### 代码细节: 
+
+ #### 代码细节:
 
 ### 通过自定义view实现，代码量大概300+，太长仅贴出部分。
 其中包含①横竖屏模式判断
@@ -188,8 +191,96 @@ private Point checkPoint(float eventX, float eventY, float br) {
 
 ![](https://github.com/que123567/NotePad/blob/master/app/src/main/res/drawable/lockview_setpassward.png)
 
-### UI美化
+### 2.UI美化
 
 ##### 演示如下
 
 ![](https://github.com/que123567/NotePad/blob/master/app/src/main/res/drawable/noteslist.png)
+
+###  3.按步撤销功能
+
+#####  源工程中已经含有撤销功能，但是只是针对于一次性撤销，即将该日记重置为打开前的状态。我实现的撤销在于可以记录你的每一次“点击保存”前的状态，这样在写长文本日记的时候比较方便，不用一步推倒，重新来过。
+演示如下
+##### 撤销前先点击保存记录
+
+![](https://github.com/que123567/NotePad/blob/master/app/src/main/res/drawable/save_before_revert.png)
+
+![](https://github.com/que123567/NotePad/blob/master/app/src/main/res/drawable/revert_1.png)
+
+![](https://github.com/que123567/NotePad/blob/master/app/src/main/res/drawable/revert_2.png)
+
+** 基于备忘录模式，自定义控件NoteEdittext继承自EditText，增加了可以保存历史文本内容的功能 **
+```
+public class Memento {
+    private String text;
+    private int cursor;
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public int getCursor() {
+        return cursor;
+    }
+
+    public void setCursor(int cursor) {
+        this.cursor = cursor;
+    }
+}
+
+```
+
+
+```
+public class NoteCaretaker {
+    //最大存储量
+    private static final int MAX = 30;
+    List<Memento> mMementoList = new ArrayList<>(MAX);
+
+    int mIndex = 0;//索引
+
+    public void saveMemento(Memento memento) {
+        if (mMementoList.size() > MAX) {
+            mMementoList.remove(0);//存满之后从第一条开始删
+        } else {
+            mMementoList.add(memento);
+            mIndex = mMementoList.size() - 1;
+        }
+    }
+
+    //获取上一个存档信息
+    public Memento getPrevMemento() {
+        mIndex = mIndex > 0 ? --mIndex : 0;
+        return mMementoList.get(mIndex);
+    }
+
+    //重做
+    public Memento getNextMemento() {
+        mIndex = mIndex < mMementoList.size() - 1 ? ++mIndex : mIndex;
+        return mMementoList.get(mIndex);
+    }
+
+}
+```
+
+```
+public class NoteEditText extends android.support.v7.widget.AppCompatEditText {
+public Memento mementoFactory() {
+      Memento noteMemento = new Memento();
+      noteMemento.setText(getText().toString());
+      noteMemento.setCursor(getSelectionStart());
+      return noteMemento;
+  }
+
+  public void restore(Memento memento) { //撤销
+      setText(memento.getText());
+      setSelection(memento.getCursor());
+  }
+//省略部分代码，具体实现请看源码
+}
+
+```
